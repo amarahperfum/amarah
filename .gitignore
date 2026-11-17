@@ -1,0 +1,10 @@
+# Copia del index.html original (solo para uso local)
+_respaldo/
+
+# Archivos del sistema y del editor
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+*.tmp
+node_modules/
