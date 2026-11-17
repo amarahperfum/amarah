@@ -148,9 +148,11 @@ document.addEventListener("error", e => {
 // ===== Catálogo =====
 function renderGrid(){
   if (cargandoHoja){
-    $("#grid").innerHTML = `<p class="cap" style="grid-column:1/-1;text-align:center;color:var(--soft);padding:60px 0">Cargando colección…</p>`;
+    $("#grid").innerHTML = `<p class="cap" style="grid-column:1/-1;text-align:center;color:var(--soft);padding:60px 0"><span class="shine">Cargando colección…</span></p>`;
     return;
   }
+  // Si la colección ya está a la vista, al filtrar se usa una entrada corta (clase "re") en vez de la cascada larga
+  $("#grid").classList.toggle("re", $("#grid").classList.contains("play"));
   const q = norm($("#q").value);
   const list = PRODUCTS.filter(p => (filtro==="todos"||p.g===filtro) && (!q || norm(p.name+" "+p.insp+" "+p.casa).includes(q)));
   $("#grid").innerHTML = list.length ? list.map((p, idx) => {
@@ -181,7 +183,8 @@ function fillCombo(){
   updLabels();
 }
 function updLabels(){ ["1","2","3"].forEach(i => { const p = PRODUCTS.find(x => x.id == $("#c"+i).value), l = $("#l"+i);
-    if (l.textContent === p.name) return; l.classList.add("swap"); setTimeout(() => { l.textContent = p.name; l.classList.remove("swap"); }, 250); }); }
+    if (l.textContent === p.name) return; l.classList.add("swap"); setTimeout(() => { l.textContent = p.name; l.classList.remove("swap"); }, 250);
+    const b = l.parentElement.querySelector(".b"); b.classList.remove("lift"); void b.offsetWidth; b.classList.add("lift"); }); }
 
 function add(item){
   const f = cart.find(c => c.key===item.key);
@@ -224,7 +227,15 @@ const openCart = o => { $("#cart").classList.toggle("open",o); $("#veil").classL
 
 $("#grid").addEventListener("click", e => {
   const sz = e.target.closest("[data-sz]");
-  if (sz){ sizeSel[sz.dataset.id] = +sz.dataset.sz; renderGrid(); return; }
+  if (sz){
+    // Solo cambia esta tarjeta (antes se redibujaban y animaban todas)
+    const s = +sz.dataset.sz, p = PRODUCTS.find(x => x.id == sz.dataset.id), card = sz.closest(".card"), pr = card.querySelector(".price");
+    sizeSel[p.id] = s;
+    card.querySelectorAll(".sz").forEach(x => x.classList.toggle("on", x === sz));
+    pr.classList.add("swap");
+    setTimeout(() => { pr.textContent = fmt(s===100 ? p.p100 : p.p30); pr.classList.remove("swap"); }, 200);
+    return;
+  }
   const b = e.target.closest("[data-add]"); if(!b) return;
   const p = PRODUCTS.find(x => x.id == b.dataset.add), s = sizeSel[p.id] || 100;
   add({key:`p${p.id}-${s}`, name:p.name, detail:`${s} ml · inspirado en ${p.insp}`, price: s===100?p.p100:p.p30, img:p.img, fb:p.fb});
@@ -244,9 +255,16 @@ $("#items").addEventListener("click", e => {
 $("#tabs").addEventListener("click", e => {
   const t = e.target.closest(".tab"); if(!t) return;
   document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x===t));
-  filtro = t.dataset.f; renderGrid();
+  filtro = t.dataset.f; renderGrid(); moverInd();
 });
-$("#q").addEventListener("input", renderGrid);
+// Indicador dorado que se desliza bajo el filtro activo
+const tabsEl = $("#tabs"), ind = document.createElement("span");
+ind.className = "tab-ind"; tabsEl.append(ind); tabsEl.classList.add("js");
+function moverInd(){ const t = tabsEl.querySelector(".tab.on"); if (!t) return;
+  ind.style.width = t.offsetWidth + "px"; ind.style.transform = `translateX(${t.offsetLeft}px)`; }
+moverInd(); addEventListener("resize", moverInd); document.fonts && document.fonts.ready.then(moverInd);
+// Buscador: espera a que termines de escribir para no reanimar las tarjetas con cada letra
+let tBusca; $("#q").addEventListener("input", () => { clearTimeout(tBusca); tBusca = setTimeout(renderGrid, 160); });
 $("#sform").addEventListener("submit", e => {
   e.preventDefault();
   const n = $("#sname").value.trim(); if(!n) return;
@@ -280,6 +298,31 @@ else { setTimeout(() => document.body.classList.add("ready"), 1750); setTimeout(
 const io = new IntersectionObserver(es => es.forEach(e => {
   if (!e.isIntersecting) return;
   e.target.classList.add(e.target.id === "grid" ? "play" : "in");
+  if (e.target.classList.contains("perk")) contar(e.target.querySelector("b"));
   io.unobserve(e.target);
 }), {threshold:.12, rootMargin:"0px 0px -6% 0px"});
 document.querySelectorAll(".rv, #grid").forEach(el => io.observe(el));
+
+// "12 h" cuenta desde 0 cuando aparece
+function contar(b){
+  const m = /^(\d+)(.*)$/.exec(b.textContent); if (!m || reduce) return;
+  const fin = +m[1], resto = m[2], t0 = performance.now(), dur = 1400;
+  const paso = t => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    b.textContent = Math.round(fin * e) + resto; if (k < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
+
+// Línea dorada de progreso del scroll (bajo el encabezado)
+const progreso = () => { const h = document.documentElement.scrollHeight - innerHeight;
+  hdr.style.setProperty("--sp", h > 0 ? Math.min(1, scrollY / h).toFixed(4) : "0"); };
+addEventListener("scroll", progreso, {passive:true}); addEventListener("resize", progreso); progreso();
+
+// Los frascos del inicio siguen suavemente al mouse (solo computadora)
+if (!reduce && matchMedia("(hover:hover) and (pointer:fine)").matches){
+  const st = $(".stage"); let px = 0, py = 0, pendiente = false;
+  addEventListener("pointermove", e => {
+    px = e.clientX / innerWidth - .5; py = e.clientY / innerHeight - .5;
+    if (pendiente) return; pendiente = true;
+    requestAnimationFrame(() => { pendiente = false; st.style.setProperty("--mx", px.toFixed(3)); st.style.setProperty("--my", py.toFixed(3)); });
+  }, {passive:true});
+}

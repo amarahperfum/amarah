@@ -51,7 +51,7 @@ nav a:hover{color:var(--white)}
 
 /* ---------- Perks ---------- */
 .perks{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.perks .in{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.perks > .in{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
 .perk{padding:30px 16px;text-align:center;border-right:1px solid var(--line)}
 .perk:last-child{border:0}
 .perk b{display:block;font-family:"Bodoni Moda",serif;font-weight:400;font-size:24px;margin-bottom:8px}
@@ -227,7 +227,7 @@ body.ready .stage .floor{animation:draw 1.6s var(--ease) .7s forwards}
 
 /* Tarjetas en cascada */
 .grid:not(.play) .card{opacity:0}
-.grid.play .card{animation:cardIn 1.1s var(--ease) both;animation-delay:calc(var(--i) * 110ms)}
+.grid.play .card{animation:cardIn 1.1s var(--ease) backwards;animation-delay:calc(var(--i) * 110ms)}
 @keyframes cardIn{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
 .tile .b img:first-child{transition:transform .9s var(--ease)}
 .card:hover .tile .b img:first-child{transform:translateY(-10px) scale(1.03)}
@@ -274,7 +274,7 @@ body.ready .stage .floor{animation:draw 1.6s var(--ease) .7s forwards}
   .b1 img,.b1 .ref{width:170px}.b2 img,.b2 .ref{width:185px}
   .b .ref{height:84px}
   .scroll{display:none}
-  .perks .in{grid-template-columns:1fr 1fr}
+  .perks > .in{grid-template-columns:1fr 1fr}
   .perk:nth-child(2){border-right:0}.perk:nth-child(-n+2){border-bottom:1px solid var(--line)}
   .sec{padding:80px 18px 20px}
   .grid{grid-template-columns:1fr 1fr;gap:12px}
@@ -300,3 +300,70 @@ body.ready .stage .floor{animation:draw 1.6s var(--ease) .7s forwards}
 /* Celulares y tablets: el brillo del inicio se salía por la derecha y ensanchaba la página
    (el botón "Mi pedido" quedaba cortado). Se recorta en el borde de la pantalla, donde ya no se ve. */
 @media (max-width:1240px){ .hero{overflow-x:clip} }
+
+/* =========================================================
+   ANIMACIONES v2: más movimiento, siempre suave y limpio
+   (mismos colores, tipografías y curva --ease del diseño)
+   ========================================================= */
+
+/* Línea dorada de progreso bajo el encabezado */
+header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,rgba(201,169,107,0),var(--gold) 35%,var(--gold-l));
+  transform-origin:0 50%;transform:scaleX(var(--sp,0));opacity:.85}
+
+/* Menú: subrayado dorado que crece */
+nav a{padding-bottom:4px;background:linear-gradient(var(--gold),var(--gold)) no-repeat 0 100% / 0 1px;
+  transition:color .3s,background-size .6s var(--ease)}
+nav a:hover{background-size:100% 1px}
+
+/* Inicio: los frascos siguen suavemente al mouse (sensación de profundidad) */
+.stage .b1{translate:calc(var(--mx,0) * -16px) calc(var(--my,0) * -8px);transition:translate 1.4s var(--ease)}
+.stage .b2{translate:calc(var(--mx,0) * 22px) calc(var(--my,0) * 12px);transition:translate 1.4s var(--ease)}
+
+/* Franja de beneficios: siempre en columna y centrada, con línea dorada y brillo al pasar */
+.perk{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+.perk b,.perk span{display:block}
+.perk b::after{content:"";display:block;width:28px;height:1px;margin:12px auto 0;background:var(--gold);
+  transform:scaleX(0);transition:transform 1.4s var(--ease) .45s}
+.perk.in b::after{transform:scaleX(1)}
+.perk.d1 b::after{transition-delay:.57s}.perk.d2 b::after{transition-delay:.69s}.perk.d3 b::after{transition-delay:.81s}
+.perk::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .8s var(--ease);
+  background:radial-gradient(70% 90% at 50% 120%,rgba(201,169,107,.13),transparent 70%)}
+.perk:hover::before{opacity:1}
+
+/* Títulos de sección: aparecen como detrás de una cortina */
+.sh h2,.cform h3,.sp-in h2{clip-path:inset(0 0 100% 0);transform:translateY(24px);
+  transition:clip-path 1.5s var(--ease) .2s,transform 1.5s var(--ease) .2s}
+.sh.in h2,.combo.in .cform h3,.sp-in.in h2{clip-path:inset(-20% -4% -30% -4%);transform:none}
+
+/* Etiquetas doradas: las letras se acomodan al aparecer */
+.sh .cap.gold,.cform .cap.gold,.sp-in .cap.gold{opacity:0;letter-spacing:.55em;
+  transition:opacity 1.2s var(--ease),letter-spacing 1.6s var(--ease)}
+.sh.in .cap.gold,.combo.in .cform .cap.gold,.sp-in.in .cap.gold{opacity:1;letter-spacing:.34em}
+
+/* Filtros: indicador dorado que se desliza entre Todos / Él / Ella / Unisex */
+.tabs{position:relative}
+.tab-ind{position:absolute;left:0;bottom:0;height:1px;width:0;background:var(--gold);pointer-events:none;
+  transition:transform .6s var(--ease),width .6s var(--ease)}
+.tabs.js .tab.on{border-color:transparent}
+
+/* Tarjetas: elevación suave al pasar el mouse */
+.card{transition:border-color .5s var(--ease),transform .7s var(--ease),box-shadow .7s var(--ease)}
+.card:hover{box-shadow:0 30px 60px -30px rgba(0,0,0,.9)}
+/* Al filtrar o buscar: entrada corta y limpia (sin repetir la cascada larga) */
+.grid.play.re .card{animation:cardQuick .7s var(--ease) backwards;animation-delay:calc(var(--i) * 45ms)}
+@keyframes cardQuick{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+/* Precio: cambia con un fundido al elegir 100 ml / 30 ml */
+.buy .price{transition:opacity .22s ease,transform .22s ease}
+.buy .price.swap{opacity:0;transform:translateY(-6px)}
+
+/* Set: el tubo elegido se eleva y brilla */
+.tube .b.lift{animation:lift 1s var(--ease)}
+@keyframes lift{40%{translate:0 -14px;filter:drop-shadow(0 0 16px rgba(227,204,156,.45))}}
+
+@media (prefers-reduced-motion: reduce){
+  .sh h2,.cform h3,.sp-in h2{clip-path:none !important;transform:none !important}
+  .sh .cap.gold,.cform .cap.gold,.sp-in .cap.gold{opacity:1 !important;letter-spacing:.34em !important}
+  .perk b::after{transform:none !important}
+  header::after{display:none}
+}
