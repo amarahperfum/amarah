@@ -296,3 +296,7 @@ body.ready .stage .floor{animation:draw 1.6s var(--ease) .7s forwards}
   .brand b{font-size:17px}
   .bag .t{display:none}
 }
+
+/* Celulares y tablets: el brillo del inicio se salía por la derecha y ensanchaba la página
+   (el botón "Mi pedido" quedaba cortado). Se recorta en el borde de la pantalla, donde ya no se ve. */
+@media (max-width:1240px){ .hero{overflow-x:clip} }
