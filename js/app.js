@@ -219,6 +219,7 @@ function waLink(total, pend){
   let msg = `Hola AMARAH ✨ Quiero hacer este pedido:\n\n${lines.join("\n")}\n\n*Total: ${fmt(total)}*`;
   if (pend) msg += ` + pedidos especiales por confirmar`;
   const n = $("#cname").value.trim(); if (n) msg += `\n\nNombre: ${n}`;
+  const d = $("#cdir").value.trim(); if (d) msg += `${n ? "\n" : "\n\n"}Dirección: ${d}`;
   return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
 }
 
@@ -273,6 +274,7 @@ $("#sform").addEventListener("submit", e => {
   e.target.reset(); openCart(true);
 });
 $("#cname").addEventListener("input", renderCart);
+$("#cdir").addEventListener("input", renderCart);
 $("#openCart").onclick = () => openCart(true);
 $("#closeCart").onclick = $("#veil").onclick = () => openCart(false);
 const hdr = $("#hdr"); const onS = () => hdr.classList.toggle("solid", scrollY > 20); addEventListener("scroll", onS, {passive:true}); onS();
